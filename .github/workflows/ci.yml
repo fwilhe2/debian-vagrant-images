@@ -6,27 +6,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: debian:testing
     steps:
     - uses: actions/checkout@v3
 
-    - run: apt-get update && apt-get -y install sudo
-
-    - name: Install Dependencies
-      run: |
-        sudo apt-get -y install libxml-writer-perl libguestfs-perl uuid-runtime \
-        ca-certificates debsums dosfstools \
-        fai-server fai-setup-storage make python3 python3-libcloud python3-marshmallow \
-        python3-pytest python3-yaml qemu-utils udev \
-        libguestfs-perl libxml-writer-perl uuid-runtime
-
-    - name: Build Image
-      run: |
-        make build-libvirt-testing-vagrant-amd64
-
-    - name: Upload Image
-      run: |
-        make NAMESPACE=fwilhe IS_RELEASE=norelease upload-libvirt-testing-vagrant-amd64
+    - run: docker build -t builder .
+    - run: docker run --tty --volume $PWD:/mnt --workdir=/mnt --privileged --env VAGRANT_CLOUD_TOKEN builder
       env:
         VAGRANT_CLOUD_TOKEN: ${{ secrets.VAGRANT_PAT }}
